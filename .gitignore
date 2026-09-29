@@ -1,0 +1,31 @@
+node_modules/
+.bun/
+dist/
+coverage/
+.turbo/
+.cache/
+.codegraph/
+
+# Local application state and SQLite sidecar files
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Credentials and local environment overrides
+.env
+.env.*
+!.env.example
+
+# Local runtime output
+*.log
+*.pid
+
+# Operating system and editor artifacts
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo

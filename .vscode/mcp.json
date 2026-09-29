@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "local-agent-automation": {
+      "type": "stdio",
+      "command": "bun",
+      "args": ["run", "${workspaceFolder}/src/cli/index.ts", "mcp"]
+    }
+  }
+}

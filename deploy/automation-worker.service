@@ -1,0 +1,16 @@
+[Unit]
+Description=Local Agent Automation scheduled worker
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=@BUN_PATH@ @CLI_PATH@ worker
+Environment=PATH=@USER_PATH@
+Environment=AUTOMATION_MCP_CONFIG=@CONFIG_PATH@
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
