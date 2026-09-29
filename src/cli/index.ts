@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { loadConfig } from '../config/config.js';
+import { findProjectRoot, initializeProject } from '../config/project.js';
 import { openDatabase } from '../db/database.js';
 import { startMcpServer } from '../mcp/stdio.js';
 import { startWorker } from '../scheduler/worker.js';
@@ -20,6 +21,9 @@ async function main(): Promise<void> {
   }
 
   switch (command) {
+    case 'init':
+      await runInit();
+      return;
     case 'mcp':
       await startMcpServer();
       return;
@@ -37,6 +41,24 @@ async function main(): Promise<void> {
       return;
     default:
       throw new Error(`Unknown command: ${command}`);
+  }
+}
+
+async function runInit(): Promise<void> {
+  const result = await initializeProject(findProjectRoot());
+  process.stdout.write(`Initialized automation for ${result.projectRoot}\n`);
+  process.stdout.write(
+    `Config: ${result.config.configPath}${result.configCreated ? ' (created)' : ' (preserved)'}\n`,
+  );
+  process.stdout.write(
+    `Database: ${result.config.databasePath}${result.databaseCreated ? ' (created)' : ' (preserved)'}\n`,
+  );
+  if (result.config.workspaceRoots.includes(result.projectRoot)) {
+    process.stdout.write(`Approved workspace: ${result.projectRoot}\n`);
+  } else {
+    process.stderr.write(
+      `Add ${result.projectRoot} to workspaceRoots in ${result.config.configPath} before creating jobs for this codebase.\n`,
+    );
   }
 }
 
@@ -152,6 +174,9 @@ function systemdQuote(value: string): string {
 function printHelp(): void {
   process.stdout.write('automation-mcp: local TODO and scheduled agent automation\n');
   process.stdout.write('\nCommands:\n');
+  process.stdout.write(
+    '  init                    Initialize the current codebase in .automation\n',
+  );
   process.stdout.write('  mcp                     Start the MCP stdio server\n');
   process.stdout.write('  worker                  Run the schedule worker\n');
   process.stdout.write('  ui [--port PORT]        Start the read-only localhost dashboard\n');

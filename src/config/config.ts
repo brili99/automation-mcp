@@ -1,6 +1,6 @@
 import { mkdir, open, readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { z } from 'zod';
 
 const configSchema = z
@@ -26,11 +26,45 @@ export function defaultConfigPath(): string {
   return join(homedir(), '.config', 'automation-mcp', 'config.json');
 }
 
+export async function discoverProjectConfigPath(
+  startDirectory = process.cwd(),
+): Promise<string | null> {
+  let directory = resolve(startDirectory);
+  while (true) {
+    const candidate = join(directory, '.automation', 'config.json');
+    try {
+      const file = Bun.file(candidate);
+      if (await file.exists()) {
+        return candidate;
+      }
+    } catch (error) {
+      if (!isNodeError(error) || error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
+
+    const parent = dirname(directory);
+    if (parent === directory) {
+      return null;
+    }
+    directory = parent;
+  }
+}
+
 export async function loadConfig(
-  configPath = process.env['AUTOMATION_MCP_CONFIG'] ?? defaultConfigPath(),
+  configPath?: string,
+  startDirectory = process.cwd(),
 ): Promise<AppConfig> {
-  const absoluteConfigPath = resolve(configPath);
-  const dataDirectory = join(homedir(), '.local', 'share', 'automation-mcp');
+  const selectedConfigPath =
+    configPath ??
+    process.env['AUTOMATION_MCP_CONFIG'] ??
+    (await discoverProjectConfigPath(startDirectory)) ??
+    defaultConfigPath();
+  const absoluteConfigPath = resolve(selectedConfigPath);
+  const projectDataDirectory = dirname(absoluteConfigPath);
+  const isProjectConfig = basename(dirname(absoluteConfigPath)) === '.automation';
+  const globalDataDirectory = join(homedir(), '.local', 'share', 'automation-mcp');
+  const dataDirectory = isProjectConfig ? projectDataDirectory : globalDataDirectory;
   await mkdir(dirname(absoluteConfigPath), { recursive: true, mode: 0o700 });
 
   let rawConfig: unknown = {};

@@ -43,7 +43,16 @@ The executable is `automation-mcp`. Bun is also required at runtime because the 
 
 ## Configure
 
-The first command creates `~/.config/automation-mcp/config.json` if it does not exist. It creates the default database at `~/.local/share/automation-mcp/automation.sqlite`. Set `AUTOMATION_MCP_CONFIG` to choose another config file; `databasePath` can be absolute or relative to the config file. Existing config and database data are not overwritten. Jobs are created paused and are enabled only after the selected CLI passes version and workspace-sandbox preflight; explicit enable requests repeat that check.
+Initialize a codebase from its Git repository or project directory:
+
+```sh
+cd /path/to/project
+automation-mcp init
+```
+
+This creates `.automation/config.json` and `.automation/automation.sqlite` with private filesystem permissions, and adds the current repository root as an approved workspace. It is safe to rerun: existing configuration and database contents are preserved. Add `.automation/` to version control ignores; the repository `.gitignore` already does this. Commands run from the project or its subdirectories automatically discover the nearest `.automation/config.json`, so the MCP server, worker, and UI use this project database.
+
+Without a project-local `.automation` directory, the first command creates `~/.config/automation-mcp/config.json` if it does not exist and uses the default database at `~/.local/share/automation-mcp/automation.sqlite`. Set `AUTOMATION_MCP_CONFIG` to choose another config file; it takes precedence over project discovery. `databasePath` can be absolute or relative to the config file. Existing config and database data are not overwritten. Jobs are created paused and are enabled only after the selected CLI passes version and workspace-sandbox preflight; explicit enable requests repeat that check.
 
 Example configuration:
 

@@ -5,6 +5,7 @@ coverage/
 .turbo/
 .cache/
 .codegraph/
+.automation/
 
 # Local application state and SQLite sidecar files
 *.sqlite
